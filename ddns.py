@@ -20,7 +20,7 @@ from aliyunsdkcore.request import RpcRequest
 
 def get_ip():
     '''
-    Query specified domain myip.opends.com from resolver1.opendns.com & 
+    Query specified domain myip.opends.com from resolver1.opendns.com &
     resolver2.opendns.com to get local public ip address
     '''
     resolver = Resolver(configure=False)
@@ -77,29 +77,31 @@ def update_record(record_id, domain_record, record_value):
     resp = json.loads(client.do_action(req))
     return resp['RecordId']
 
-def process_record(record_id, domain_record, record_value):
+def process_record(resp, domain_record):
+    record_id, record_value = get_record(resp, domain_record)
+
     if record_id is None:
         print('The record does not exits, this script will add it first.')
     else:
         print('RecordId: %s, Value: %s'%(record_id, record_value))
-        
+
     changed = True
-    if not record_id: # Create a new record 
+    if not record_id: # Create a new record
         add_record(domain_record, IP)
-    elif record_value != ip: # Update a new value to the record
+    elif record_value != IP: # Update a new value to the record
         print('Update...')
         update_record(record_id, domain_record, IP)
     else:
         changed = False
-   
+
     # Query the result
     if changed:
-        resp = get_all_record()
-        record_id, record_value = get_record(resp, domain_record)
+        resp_new = get_all_record()
+        record_id, record_value = get_record(resp_new, domain_record)
         if record_id is None:
             print('FAILED: The record does not exits.')
             return
-        
+
     print('Status: RecordId=%s, Value=%s'%(record_id, record_value))
 
 if __name__ == '__main__':
@@ -112,10 +114,9 @@ if __name__ == '__main__':
 
     # Get IP address
     IP = get_ip()
-    print('The public IP detected is %s.'%ip)
-    
+    print('The public IP detected is %s.'%IP)
+
     for domain_record in DOMAIN_RECORD:
-        record_id, record_value = get_record(resp, domain_record)
-        process_record(record_id, domain_record, record_value)
-        
+        process_record(resp, domain_record)
+
 
